@@ -1,0 +1,103 @@
+### Necessário para pegar o token
+### Post
+# @name loginAutenticado
+POST http://localhost:40000/Login HTTP/1.1
+content-type: application/json
+
+{
+    "username": "admin",
+    "password": "admin"
+}
+
+### Seta o token
+@accessToken = {{loginAutenticado.response.body.$.token}}
+
+###
+
+### sem token
+GET http://localhost:40000/getAllPacientes HTTP/1.1
+content-type: application/json
+
+###
+
+### token inválido
+GET http://localhost:40000/getAllPacientes HTTP/1.1
+content-type: application/json
+Authorization: Bearer token-invalido
+
+###
+
+### dados inválidos
+POST http://localhost:40000/insertPaciente HTTP/1.1
+content-type: application/json
+Authorization: Bearer {{accessToken}}
+
+{
+    "nome": "",
+    "cpf": "123",
+    "telefone": "abc",
+    "data_nascimento": "31-02-2026"
+}
+
+###
+
+### teste de inserção de paciente
+POST http://localhost:40000/insertPaciente HTTP/1.1
+content-type: application/json
+Authorization: Bearer {{accessToken}}
+
+{
+    "nome": "Carlos Matias",
+    "cpf": "45678901234",
+    "telefone": "(17) 97777-0003",
+    "data_nascimento": "1990-04-18"
+}
+
+###
+
+### teste de buscar todos os pacientes
+GET http://localhost:40000/getAllPacientes HTTP/1.1
+content-type: application/json
+Authorization: Bearer {{accessToken}}
+
+###
+
+### teste de buscar paciente por ID
+GET http://localhost:40000/getPacienteByID/1 HTTP/1.1
+content-type: application/json
+Authorization: Bearer {{accessToken}}
+
+###
+
+### ID inexistente
+GET http://localhost:40000/getPacienteByID/999999 HTTP/1.1
+content-type: application/json
+Authorization: Bearer {{accessToken}}
+
+###
+
+### teste de atualização de paciente
+PUT http://localhost:40000/updatePaciente/1 HTTP/1.1
+content-type: application/json
+Authorization: Bearer {{accessToken}}
+
+{
+    "nome": "Ana Lima Atualizada",
+    "cpf": "12345678901",
+    "telefone": "(17) 99999-0001",
+    "data_nascimento": "1988-03-12"
+}
+
+###
+
+### teste de exclusão lógica
+DELETE http://localhost:40000/deletePaciente/3 HTTP/1.1
+content-type: application/json
+Authorization: Bearer {{accessToken}}
+
+###
+
+### registro já removido ou inexistente
+DELETE http://localhost:40000/deletePaciente/999999 HTTP/1.1
+content-type: application/json
+Authorization: Bearer {{accessToken}}

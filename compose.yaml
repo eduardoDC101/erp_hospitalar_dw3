@@ -1,0 +1,24 @@
+services:
+  backend:
+    build:
+      context: ./dw3backend
+    container_name: erp_backend
+    ports:
+      - "40000:40000"
+    env_file:
+      - ./dw3backend/.env
+    environment:
+      PORT: 40000
+      DB_HOST: host.docker.internal
+
+  frontend:
+    build:
+      context: ./dw3frontend
+    container_name: erp_frontend
+    ports:
+      - "40100:40100"
+    env_file:
+      - ./dw3frontend/dw3frontend.env
+    environment:
+      PORT: 40100
+      SERVIDOR_DW3: http://localhost:40000

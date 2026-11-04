@@ -1,0 +1,103 @@
+### Necessário para pegar o token
+### Post
+# @name loginAutenticado
+POST http://localhost:40000/Login HTTP/1.1
+content-type: application/json
+
+{
+    "username": "admin",
+    "password": "admin"
+}
+
+### Seta o token
+@accessToken = {{loginAutenticado.response.body.$.token}}
+
+###
+
+### sem token
+GET http://localhost:40000/getAllConsultas HTTP/1.1
+content-type: application/json
+
+###
+
+### token inválido
+GET http://localhost:40000/getAllConsultas HTTP/1.1
+content-type: application/json
+Authorization: Bearer token-invalido
+
+###
+
+### relacionamento inválido
+POST http://localhost:40000/insertConsulta HTTP/1.1
+content-type: application/json
+Authorization: Bearer {{accessToken}}
+
+{
+    "pacienteid": 999999,
+    "descricao": "Consulta sem paciente",
+    "valor": 100.00,
+    "data_consulta": "2026-12-01"
+}
+
+###
+
+### dados inválidos
+POST http://localhost:40000/insertConsulta HTTP/1.1
+content-type: application/json
+Authorization: Bearer {{accessToken}}
+
+{
+    "pacienteid": 1,
+    "descricao": "",
+    "valor": -10,
+    "data_consulta": "31-02-2026"
+}
+
+###
+
+### teste de inserção de consulta
+POST http://localhost:40000/insertConsulta HTTP/1.1
+content-type: application/json
+Authorization: Bearer {{accessToken}}
+
+{
+    "pacienteid": 1,
+    "descricao": "Consulta de rotina",
+    "valor": 750.50,
+    "data_consulta": "2026-12-20"
+}
+
+###
+
+### teste de buscar todas as consultas
+GET http://localhost:40000/getAllConsultas HTTP/1.1
+content-type: application/json
+Authorization: Bearer {{accessToken}}
+
+###
+
+### teste de buscar consulta por ID
+GET http://localhost:40000/getConsultaByID/1 HTTP/1.1
+content-type: application/json
+Authorization: Bearer {{accessToken}}
+
+###
+
+### teste de atualização de consulta
+PUT http://localhost:40000/updateConsulta/1 HTTP/1.1
+content-type: application/json
+Authorization: Bearer {{accessToken}}
+
+{
+    "pacienteid": 1,
+    "descricao": "Consulta clinica geral revisada",
+    "valor": 210.00,
+    "data_consulta": "2026-11-30"
+}
+
+###
+
+### teste de exclusão lógica
+DELETE http://localhost:40000/deleteConsulta/1 HTTP/1.1
+content-type: application/json
+Authorization: Bearer {{accessToken}}

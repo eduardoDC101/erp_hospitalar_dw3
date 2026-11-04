@@ -1,0 +1,39 @@
+{% extends "layout.njk" %}
+
+{% block content %}
+  <div class="row g-4 align-items-stretch">
+    <div class="col-lg-5">
+      <header class="home-intro h-100 d-flex flex-column justify-content-center">
+        <p class="page-kicker fw-semibold mb-2">Sistema de Gestão Hospitalar</p>
+        <h1 class="h2 fw-bold mb-3">Painel principal</h1>
+        <p class="text-secondary mb-0">Cadastre pacientes e as consultas vinculadas a cada um.</p>
+      </header>
+    </div>
+    <div class="col-lg-7">
+      <div class="d-flex flex-column gap-3 h-100">
+        <a class="card page-card shortcut-card module-link text-reset" href="/pacientes">
+          <div class="card-body p-0 d-flex">
+            <span class="module-index" aria-hidden="true">01</span>
+            <div class="p-4">
+              <span class="shortcut-mark">Cadastro</span>
+              <h2 class="h5 fw-semibold mb-1">Pacientes</h2>
+              <p class="text-secondary mb-0">Cadastro dos pacientes atendidos.</p>
+            </div>
+          </div>
+        </a>
+        <a class="card page-card shortcut-card module-link text-reset" href="/consultas">
+          <div class="card-body p-0 d-flex">
+            <span class="module-index" aria-hidden="true">02</span>
+            <div class="p-4">
+              <span class="shortcut-mark">Atendimento</span>
+              <h2 class="h5 fw-semibold mb-1">Consultas</h2>
+              <p class="text-secondary mb-0">Descrição, valor e data ligados a um paciente.</p>
+            </div>
+          </div>
+        </a>
+      </div>
+    </div>
+  </div>
+  <script src="/js/dw3frontend.js"></script>
+  <script src="/apps/home/vwHome.js"></script>
+{% endblock %}

@@ -1,0 +1,4 @@
+node_modules/
+.env
+dw3frontend.env
+*.log

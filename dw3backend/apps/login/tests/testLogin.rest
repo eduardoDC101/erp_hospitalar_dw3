@@ -1,0 +1,31 @@
+### teste de login
+
+POST http://localhost:40000/Login HTTP/1.1
+content-type: application/json
+
+{
+    "username": "admin",
+    "password": "admin"
+}
+
+###
+
+### teste de login inválido
+
+POST http://localhost:40000/Login HTTP/1.1
+content-type: application/json
+
+{
+    "username": "admin",
+    "password": "senha-errada"
+}
+
+###
+
+### teste de logout
+
+POST http://localhost:40000/Logout HTTP/1.1
+content-type: application/json
+
+{
+}
