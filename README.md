@@ -1,8 +1,8 @@
-# Sistema de Gestão Hospitalar
+# Sistema de Gestão Hospitalae
 
 Sistema de pacientes e consultas, feito para a matéria de Desenvolvimento Web 3.
 
-## O que o sistema guarda:
+## O que o sistema guard:
 
 - `pacientes`: `id`, `nome`, `cpf`, `telefone`, `data_nascimento`, `removido`.
 - `consultas`: `id`, `pacienteid`, `descricao`, `valor numeric(12,2)`, `data_consulta`, `removido`.
