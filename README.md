@@ -1,4 +1,4 @@
-# Sistema de Gestão Hospitalae
+# Sistema de Gestão Hospitalar
 
 Sistema de pacientes e consultas, feito para a matéria de Desenvolvimento Web 3.
 
@@ -13,24 +13,24 @@ A exclusão muda `removido` para `true`, a linha continua no banco. Um paciente 
 
 ## Arquitetura
 
-- Backend em Node.js e Express, publicado na porta **40000**.
-- Frontend em Node.js e Express, publicado na porta **40100**.
-- PostgreSQL 16 instalado e em execução no Windows, fora do Docker. O `compose.yaml` não sobe o banco.
+São duas aplicações independentes:
 
-No Docker, o `compose.yaml` define os serviços `backend` e `frontend`. O backend recebe `DB_HOST=host.docker.internal` para alcançar o PostgreSQL do Windows. O frontend recebe `SERVIDOR_DW3=http://localhost:40000`, endereço usado pelo navegador na máquina local.
+- Backend em Node.js e Express, na porta **40000**.
+- Frontend em Node.js e Express, na porta **40100**.
+- PostgreSQL 16 instalado e em execução no Windows, fora do Docker.
 
-## Pre-requisitos
+A imagem usada nos Dockerfiles é `node:24-bookworm-slim`. Com Docker, a máquina não precisa ter o Node.js instalado.
+
+O navegador acessa o frontend em http://localhost:40100. O frontend chama o backend em `http://localhost:40000`, na máquina local. O container do backend alcança o PostgreSQL do Windows pelo nome `host.docker.internal`.
+
+## Pré-requisitos
 
 Para executar com Docker:
 
-- Docker Desktop.
-- Docker Compose, pelo comando `docker compose`.
+- Docker Desktop, com o backend WSL2 funcionando.
 - PostgreSQL 16 em execução no Windows.
-- Docker Desktop com o backend WSL2 funcionando.
 
-A imagem dos dois serviços é `node:22-alpine`. Com Docker, a máquina não precisa ter o Node.js instalado.
-
-Para executar sem Docker, o requisito local continua sendo Node.js 18 ou superior, além do PostgreSQL em execução. Essa forma não usa a imagem Node.js 22.
+Para executar sem Docker, o requisito local continua sendo Node.js 18 ou superior, além do PostgreSQL em execução.
 
 ## Configuração
 
@@ -43,7 +43,7 @@ $env:PGCLIENTENCODING = "UTF8"
 & $psql -h localhost -U postgres -d erp_hospitalar -f ".\dw3backend\database\databaseConfig.sql"
 ```
 
-Crie os arquivos locais a partir dos exemplos e preencha a senha do PostgreSQL e o segredo do JWT. Não grave esses valores no repositório: `.env` e `dw3frontend.env` estão no `.gitignore`.
+Crie os arquivos reais de ambiente a partir dos exemplos e preencha a senha do PostgreSQL e o segredo do JWT. Não grave esses valores no repositório: `.env` e `dw3frontend.env` estão no `.gitignore`.
 
 ```powershell
 Copy-Item .\dw3backend\.env.example .\dw3backend\.env
@@ -54,11 +54,11 @@ Variáveis do back-end, em `dw3backend/.env`: `PORT`, `SECRET_API`, `DB_NAME`, `
 
 Variável do front-end, em `dw3frontend/dw3frontend.env`: `SERVIDOR_DW3=http://localhost:40000`. O exemplo também traz `APP_NAME` e `PORT`.
 
-Na execução local, `DB_HOST` permanece `localhost`. Na execução com Docker, o `compose.yaml` substitui este valor por `host.docker.internal` e mantém `SERVIDOR_DW3` em `http://localhost:40000`. As portas publicadas também ficam fixas no Compose: `40000` no backend e `40100` no frontend.
+No `.env` local, `DB_HOST` permanece `localhost`, para a execução sem Docker. No `docker run` do backend, o parâmetro `-e DB_HOST=host.docker.internal` substitui esse valor somente dentro do container. Esse nome permite que o backend em container alcance o PostgreSQL instalado no Windows. A porta publicada do backend é **40000** e a do frontend é **40100**.
 
 ### PostgreSQL acessível a partir do Docker Desktop
 
-O banco continua só no Windows. O container do backend chega nele pelo nome `host.docker.internal` e pela porta definida em `DB_PORT` (5432 no exemplo).
+O banco continua só no Windows. O container do backend chega nele por `host.docker.internal` e pela porta definida em `DB_PORT` (5432 no exemplo).
 
 Para aceitar essa conexão sem abrir o PostgreSQL para a rede externa:
 
@@ -70,7 +70,61 @@ Para aceitar essa conexão sem abrir o PostgreSQL para a rede externa:
 
 ## Execução com Docker
 
-Na raiz do projeto, com os arquivos de ambiente já criados:
+Este é o procedimento principal. Cada comando de build e de execução roda no diretório da aplicação correspondente, com os arquivos de ambiente já criados.
+
+Construa a imagem do backend em `dw3backend`:
+
+```powershell
+cd dw3backend
+docker build -t dw3backend_img:1.0 .
+```
+
+Construa a imagem do frontend em `dw3frontend`. Se o terminal ainda estiver em `dw3backend`:
+
+```powershell
+cd ..\dw3frontend
+docker build -t dw3frontend_img:1.0 .
+```
+
+Inicie o backend em `dw3backend`, onde está o arquivo `.env`:
+
+```powershell
+cd ..\dw3backend
+docker run -d --name dw3backend_ctner --add-host host.docker.internal:host-gateway --env-file .env -e DB_HOST=host.docker.internal -e PORT=40000 -p 40000:40000 --restart unless-stopped dw3backend_img:1.0
+```
+
+Inicie o frontend em `dw3frontend`, onde está o arquivo `dw3frontend.env`:
+
+```powershell
+cd ..\dw3frontend
+docker run -d --name dw3frontend_ctner --env-file dw3frontend.env -e PORT=40100 -e SERVIDOR_DW3=http://localhost:40000 -p 40100:40100 --restart unless-stopped dw3frontend_img:1.0
+```
+
+`--restart unless-stopped` faz o Docker reiniciar o container, exceto quando ele é parado manualmente. `--add-host host.docker.internal:host-gateway` entra só no backend.
+
+### Verificação e testes
+
+Na raiz do projeto, ou em qualquer diretório, estes comandos consultam os containers já criados:
+
+```powershell
+docker ps
+docker logs dw3backend_ctner
+docker logs dw3frontend_ctner
+docker exec dw3backend_ctner node tests/testarApis.js
+```
+
+- Frontend: http://localhost:40100
+- Backend: http://localhost:40000
+
+A rota `/` do frontend responde com redirecionamento para `/home`. O login fica em http://localhost:40100/login. As listagens ficam em http://localhost:40100/pacientes e http://localhost:40100/consultas.
+
+A suíte cria um paciente e uma consulta, altera esses registros e depois os exclui de forma lógica (`removido = true`). Ela também autentica com JWT e recusa pedido sem token ou com token inválido. Use apenas o banco de desenvolvimento `erp_hospitalar`. O resultado depende do banco e dos containers estarem disponíveis no momento da execução.
+
+## Docker Compose (alternativa)
+
+O arquivo `compose.yaml`, na raiz, sobe os mesmos dois serviços sem substituir o procedimento acima. O Compose publica as portas **40000** e **40100**, lê `dw3backend/.env` e `dw3frontend/dw3frontend.env`, define `DB_HOST=host.docker.internal` no backend e mantém `SERVIDOR_DW3=http://localhost:40000` no frontend. O PostgreSQL não faz parte do Compose.
+
+Na raiz do projeto:
 
 ```powershell
 docker compose config
@@ -82,30 +136,21 @@ docker compose down
 ```
 
 - `docker compose config` valida o `compose.yaml` e a leitura dos arquivos de ambiente.
-- `docker compose build` constrói as imagens do backend e do frontend.
+- `docker compose build` constrói as imagens do backend e do frontend a partir dos Dockerfiles.
 - `docker compose up -d` inicia os dois containers em segundo plano.
 - `docker compose ps` mostra se continuam em execução e quais portas foram publicadas.
 - `docker compose logs` mostra a saída dos serviços. Para um deles: `docker compose logs backend` ou `docker compose logs frontend`.
 - `docker compose down` para e remove os containers deste Compose e a rede criada por ele. Não apaga o PostgreSQL nem os dados do banco no Windows, e não remove as imagens.
 
-## Acesso
-
-- Frontend: http://localhost:40100
-- Backend: http://localhost:40000
-
-A rota `/` do frontend responde com redirecionamento para `/home`. O login fica em http://localhost:40100/login.
-
-## Testes
-
-Com os containers em execução, a suíte do backend roda dentro do container:
+Com os serviços do Compose em execução, a suíte pode ser chamada assim:
 
 ```powershell
 docker compose exec -T backend node tests/testarApis.js
 ```
 
-Os testes criam um paciente e uma consulta, alteram esses registros e depois os excluem de forma lógica (`removido = true`). Eles também autenticam com JWT e recusam pedido sem token ou com token inválido. Use apenas o banco de desenvolvimento `erp_hospitalar`.
+## Testes sem Docker
 
-Sem Docker, com o backend local no ar:
+Com o backend local no ar:
 
 ```powershell
 cd .\dw3backend
