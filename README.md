@@ -19,7 +19,7 @@ A exclusão muda `removido` para `true`, a linha continua no banco. Um paciente 
 
 No Docker, o `compose.yaml` define os serviços `backend` e `frontend`. O backend recebe `DB_HOST=host.docker.internal` para alcançar o PostgreSQL do Windows. O frontend recebe `SERVIDOR_DW3=http://localhost:40000`, endereço usado pelo navegador na máquina local.
 
-## Pré-requisitos
+## Pre-requisitos
 
 Para executar com Docker:
 
