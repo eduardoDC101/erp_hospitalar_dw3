@@ -9,6 +9,7 @@ var homeRouter = require('./routes/rtHome');
 var pacientesRouter = require('./routes/rtPacientes');
 var consultasRouter = require('./routes/rtConsultas');
 
+//Requisitando o .env do front e back.
 require('dotenv').config({ path: path.join(__dirname, '.env') });
 require('dotenv').config({ path: path.join(__dirname, 'dw3frontend.env') });
 
