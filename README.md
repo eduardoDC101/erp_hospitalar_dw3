@@ -1,4 +1,4 @@
-# Sistema de Gestão Hospitalar
+# Sistema de Gestão Hospitalae
 
 Sistema de pacientes e consultas, feito para a matéria de Desenvolvimento Web 3.
 
